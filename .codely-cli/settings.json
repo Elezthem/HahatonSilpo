@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "silpo": {
+      "httpUrl": "https://mcp.silpo.ua/mcp"
+    }
+  },
+  "model": "codely-core"
+}
