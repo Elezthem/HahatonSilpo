@@ -1,0 +1,12 @@
+{
+  "name": "ai-charity-connect",
+  "version": "1.0.0",
+  "description": "AI Charity Connect — інтелектуальна система координації благодійної допомоги на основі MCP «Сільпо»",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["mcp", "silpo", "charity", "ai", "hackathon"],
+  "license": "MIT"
+}

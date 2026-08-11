@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Charity Connect — Координація благодійної допомоги</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='21' fill='none' stroke='%234caf50' stroke-width='3'/%3E%3Cpath d='M16 24 L22 30 L34 18' fill='none' stroke='%234caf50' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply saved/preferred theme before paint to avoid flash
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<!-- ═══ Animated Background ═══════════════════════════════ -->
+<div class="bg-animated"></div>
+<div class="bg-particles" id="bgParticles"></div>
+
+<!-- ═══ Header ═══════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-content">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 48 48" width="44" height="44">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4caf50"/>
+              <stop offset="50%" stop-color="#00e676"/>
+              <stop offset="100%" stop-color="#2e7d32"/>
+            </linearGradient>
+            <filter id="logoGlow">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <circle cx="24" cy="24" r="21" fill="none" stroke="url(#logoGrad)" stroke-width="2.5" filter="url(#logoGlow)"/>
+          <path d="M16 24 L22 30 L34 18" fill="none" stroke="url(#logoGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#logoGlow)"/>
+          <path d="M24 8 C18 12, 18 16, 24 20 C30 16, 30 12, 24 8 Z" fill="url(#logoGrad)" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h1>AI Charity Connect</h1>
+        <span>Інтелектуальна система координації благодійної допомоги · MCP «Сільпо»</span>
+      </div>
+    </div>
+    <div class="header-status">
+      <button id="themeBtn" class="btn btn-outline" onclick="toggleTheme()" title="Перемкнути тему" style="padding:7px 12px;font-size:16px;">🌙</button>
+      <div id="mcpStatus" class="status-badge status-pending">
+        <span class="status-dot"></span>
+        <span class="status-text">Перевірка...</span>
+      </div>
+      <button id="authBtn" class="btn btn-outline" onclick="authenticateMCP()">Підключити Сільпо</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ Navigation ══════════════════════════════════════════ -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд <span class="tab-badge" id="badge-dashboard" style="display:none"></span></button>
+  <button class="nav-tab" data-tab="inventory" onclick="switchTab('inventory')">📦 Інвентаризація <span class="tab-badge" id="badge-inventory" style="display:none"></span></button>
+  <button class="nav-tab" data-tab="charity" onclick="switchTab('charity')">🤝 Запити <span class="tab-badge" id="badge-charity" style="display:none"></span></button>
+  <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')">🚚 План передачі</button>
+  <button class="nav-tab" data-tab="network" onclick="switchTab('network')">🌐 Мережа</button>
+</nav>
+
+<!-- ═══ Main Content ═══════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ─── Dashboard Tab ─── -->
+  <section id="tab-dashboard" class="tab-content active">
+    <div class="toolbar-row">
+      <button class="btn btn-primary btn-sm" onclick="loadDashboard()">🔄 Оновити</button>
+      <button id="autoRefreshBtn" class="btn btn-outline-dark btn-sm" onclick="toggleAutoRefresh()" title="Автооновлення кожні 30с">⏱️ Авто: вимк</button>
+      <span class="last-updated" id="lastUpdated"></span>
+    </div>
+    <div class="cards-grid">
+      <div class="card card-stat">
+        <div class="card-icon">📦</div>
+        <div class="card-value" id="statTotal" data-target="0">—</div>
+        <div class="card-label">Всього товарів</div>
+      </div>
+      <div class="card card-stat card-danger">
+        <div class="card-icon">⚠️</div>
+        <div class="card-value" id="statAtRisk" data-target="0">—</div>
+        <div class="card-label">Під ризиком списання</div>
+      </div>
+      <div class="card card-stat card-warning">
+        <div class="card-icon">📉</div>
+        <div class="card-value" id="statAnomalies" data-target="0">—</div>
+        <div class="card-label">Аномалії попиту</div>
+      </div>
+      <div class="card card-stat card-info">
+        <div class="card-icon">💰</div>
+        <div class="card-value" id="statLoss" data-target="0">—</div>
+        <div class="card-label">Прогнозовані збитки</div>
+      </div>
+      <div class="card card-stat card-danger">
+        <div class="card-icon">📊</div>
+        <div class="card-value" id="statAvgRNS" data-target="0">—</div>
+        <div class="card-label">Середній RNS</div>
+      </div>
+    </div>
+
+    <div class="cards-grid cards-2">
+      <div class="card">
+        <h2 class="card-title">Розподіл за рівнем ризику</h2>
+        <div id="riskChart" class="bar-chart"></div>
+      </div>
+      <div class="card">
+        <h2 class="card-title">Ключова інновація</h2>
+        <div class="innovation-box">
+          <div class="innovation-headline">
+            <span class="innovation-badge">🔍 Прогноз, а не реакція</span>
+          </div>
+          <p class="innovation-text">
+            Традиційні системи реагують на товари, термін придатності яких вже добігає.
+            <strong>AI Charity Connect діє на випередження</strong> — виявляє позиції, які
+            <strong>не будуть продані</strong> до закінчення терміну, ще до того, як це стає очевидним.
+          </p>
+          <div class="innovation-steps">
+            <div class="innovation-step">
+              <div class="innovation-step-num">1</div>
+              <div class="innovation-step-body">
+                <strong>Виявлення аномалій попиту</strong>
+                <span class="innovation-step-desc">Аналіз історії продажів: ковзне середнє, стандартні відхилення, виявлення раптових знижень та сплесків</span>
+              </div>
+            </div>
+            <div class="innovation-step">
+              <div class="innovation-step-num">2</div>
+              <div class="innovation-step-body">
+                <strong>Прогноз ризику нереалізації (RNS)</strong>
+                <span class="innovation-step-desc">Ймовірнісна модель: залишок × швидкість продажу × волатильність → RNS (Risk of Non-Sale) — ймовірність нереалізації до закінчення терміну</span>
+              </div>
+            </div>
+            <div class="innovation-step">
+              <div class="innovation-step-num">3</div>
+              <div class="innovation-step-body">
+                <strong>AI Donation Score</strong>
+                <span class="innovation-step-desc">Інтегральний показник: RNS + термін придатності + відповідність запиту фонду + логістика + кількість → пріоритетність передачі</span>
+              </div>
+            </div>
+            <div class="innovation-step">
+              <div class="innovation-step-num">4</div>
+              <div class="innovation-step-body">
+                <strong>Мережевий аналіз через MCP «Сільпо»</strong>
+                <span class="innovation-step-desc">Отримання даних → аналіз мережі магазинів → матчинг із запитами фондів → генерація оптимального плану передачі</span>
+              </div>
+            </div>
+            <div class="innovation-step">
+              <div class="innovation-step-num">5</div>
+              <div class="innovation-step-body">
+                <strong>Подвійна цінність</strong>
+                <span class="innovation-step-desc">Бізнес: запобігання збиткам від списань · Соціум: адресна допомога нужденним через благодійні фонди</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title">Топ-товарів за ризиком нереалізації</h2>
+      <div id="topRiskTable" class="table-container"></div>
+    </div>
+  </section>
+
+  <!-- ─── Inventory Tab ─── -->
+  <section id="tab-inventory" class="tab-content">
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">Аналіз інвентаризації</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline-dark btn-sm" onclick="exportInventoryCSV()" title="Експорт у CSV">📥 Експорт CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="loadInventory()">🔄 Оновити</button>
+        </div>
+      </div>
+      <div class="filters">
+        <select id="riskFilter" class="select" onchange="filterInventory()">
+          <option value="">Всі рівні ризику</option>
+          <option value="critical">🔴 Критичний</option>
+          <option value="high">🟠 Високий</option>
+          <option value="medium">🟡 Середній</option>
+          <option value="low">🟢 Низький</option>
+        </select>
+        <input type="text" id="searchFilter" class="input" placeholder="Пошук товару..." oninput="debouncedFilterInventory()">
+      </div>
+      <div id="inventoryTable" class="table-container"></div>
+    </div>
+  </section>
+
+  <!-- ─── Charity Requests Tab ─── -->
+  <section id="tab-charity" class="tab-content">
+    <div class="cards-grid cards-2">
+      <div class="card">
+        <h2 class="card-title">Новий запит</h2>
+        <form id="charityForm" onsubmit="submitCharityRequest(event)">
+          <div class="form-group">
+            <label>Назва організації</label>
+            <input type="text" id="orgName" class="input" required placeholder="Напр. Благодійний фонд «Разом»">
+          </div>
+          <div class="form-group">
+            <label>Категорії потрібних продуктів</label>
+            <div class="checkbox-group">
+              <label class="checkbox"><input type="checkbox" value="молочн">🥛 Молочні</label>
+              <label class="checkbox"><input type="checkbox" value="хліб">🍞 Хлібобулочні</label>
+              <label class="checkbox"><input type="checkbox" value="м'яс">🥩 М'ясо</label>
+              <label class="checkbox"><input type="checkbox" value="ковбас">🥩 Ковбаси</label>
+              <label class="checkbox"><input type="checkbox" value="овоч">🥕 Овочі</label>
+              <label class="checkbox"><input type="checkbox" value="фрукт">🍎 Фрукти</label>
+              <label class="checkbox"><input type="checkbox" value="напій">🧃 Напої</label>
+              <label class="checkbox"><input type="checkbox" value="бакал">🌾 Бакалія</label>
+              <label class="checkbox"><input type="checkbox" value="кондит">🍪 Кондитерські</label>
+              <label class="checkbox"><input type="checkbox" value="заморож">🧊 Заморожені</label>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Кількість (шт)</label>
+              <input type="number" id="quantity" class="input" min="1" value="10" required>
+            </div>
+            <div class="form-group">
+              <label>Пріоритет</label>
+              <select id="priority" class="select">
+                <option value="high">🔴 Високий</option>
+                <option value="normal" selected>🟡 Звичайний</option>
+                <option value="low">🟢 Низький</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Адреса доставки</label>
+            <input type="text" id="deliveryAddress" class="input" required placeholder="Київ, вул. ...">
+          </div>
+          <div class="form-group">
+            <label>Термін виконання (днів)</label>
+            <input type="number" id="deadline" class="input" min="1" value="3">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Подати запит</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2 class="card-title">Активні запити</h2>
+        <div id="charityRequestsList" class="list-container">
+          <p class="empty-state">Запитів поки немає</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Transfer Plan Tab ─── -->
+  <section id="tab-transfer" class="tab-content">
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">Оптимальний план передачі</h2>
+        <button class="btn btn-primary" onclick="generatePlan()">Згенерувати план</button>
+      </div>
+      <div id="transferPlans" class="transfer-plans">
+        <p class="empty-state">Натисніть «Згенерувати план» для аналізу</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Network Tab ─── -->
+  <section id="tab-network" class="tab-content">
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">Мережевий аналіз ризиків</h2>
+        <button class="btn btn-primary" onclick="loadNetwork()">Оновити</button>
+      </div>
+      <div id="networkOverview" class="cards-grid"></div>
+    </div>
+    <div class="card">
+      <h2 class="card-title">Магазини мережі</h2>
+      <div id="networkStores" class="table-container"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>AI Charity Connect · Hackathon 2026 · Powered by Silpo MCP</p>
+  <p class="footer-meme">Зроблено з ❤️ та недоспаними ночами · Не списуйте їжу, роздавайте!</p>
+</footer>
+
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+  <div class="loading-spinner"></div>
+  <p class="loading-text">Аналіз даних<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+</div>
+
+<button id="backToTop" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Догори">↑</button>
+
+<!-- ═══ Keyboard Shortcuts Help ══════════════════════════ -->
+<div id="shortcutsOverlay" class="shortcuts-overlay" style="display:none;">
+  <div class="shortcuts-panel">
+    <div class="shortcuts-header">
+      <h3>⌨️ Гарячі клавіші</h3>
+      <button class="btn btn-outline-dark btn-sm" onclick="closeShortcuts()">✕</button>
+    </div>
+    <div class="shortcuts-grid">
+      <div class="shortcut-item"><kbd>1</kbd>–<kbd>5</kbd> <span>Перемикання вкладок</span></div>
+      <div class="shortcut-item"><kbd>T</kbd> <span>Темна / світла тема</span></div>
+      <div class="shortcut-item"><kbd>?</kbd> <span>Ця довідка</span></div>
+      <div class="shortcut-item"><kbd>Esc</kbd> <span>Закрити</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
