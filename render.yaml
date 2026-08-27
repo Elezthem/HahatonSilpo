@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-charity-connect
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: MCP_REDIRECT_URI
+        sync: false

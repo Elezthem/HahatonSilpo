@@ -22,6 +22,13 @@
 <!-- ═══ Animated Background ═══════════════════════════════ -->
 <div class="bg-animated"></div>
 <div class="bg-particles" id="bgParticles"></div>
+<div class="snow-layer" id="snowLayer" aria-hidden="true"></div>
+<div class="meme-decor" aria-hidden="true">
+  <span class="meme-float meme-mushroom" title="Машрум контролює списання">🍄</span>
+  <span class="meme-float meme-bread" title="Хліб має допомагати, а не списуватись">🍞</span>
+  <span class="meme-float meme-banana" title="Врятуй банан">🍌</span>
+  <span class="meme-float meme-gift" title="Їжа перетворюється на допомогу">🎁</span>
+</div>
 
 <!-- ═══ Header ═══════════════════════════════════════════════ -->
 <header class="header">
@@ -68,6 +75,9 @@
 <nav class="nav-tabs">
   <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Дашборд <span class="tab-badge" id="badge-dashboard" style="display:none"></span></button>
   <button class="nav-tab" data-tab="inventory" onclick="switchTab('inventory')">📦 Інвентаризація <span class="tab-badge" id="badge-inventory" style="display:none"></span></button>
+  <button class="nav-tab" data-tab="trends" onclick="switchTab('trends')">📈 Тренди</button>
+  <button class="nav-tab" data-tab="decisions" onclick="switchTab('decisions')">✅ Вибірка <span class="tab-badge" id="badge-decisions" style="display:none"></span></button>
+  <button class="nav-tab" data-tab="charity-items" onclick="switchTab('charity-items')">🎁 Благодійність <span class="tab-badge" id="badge-charity-items" style="display:none"></span></button>
   <button class="nav-tab" data-tab="charity" onclick="switchTab('charity')">🤝 Запити <span class="tab-badge" id="badge-charity" style="display:none"></span></button>
   <button class="nav-tab" data-tab="transfer" onclick="switchTab('transfer')">🚚 План передачі</button>
   <button class="nav-tab" data-tab="network" onclick="switchTab('network')">🌐 Мережа</button>
@@ -75,6 +85,25 @@
 
 <!-- ═══ Main Content ═══════════════════════════════════════ -->
 <main class="main">
+  <div id="dataSourceBanner" class="source-banner source-model">
+    <strong>Прозорість даних:</strong> каталог, доступність і кошик — офіційний MCP «Сільпо»; RNS та прогноз списань — прототип моделі, який для production потребує внутрішніх даних про продажі, партії та строки придатності.
+  </div>
+  <section class="agent-hero" aria-label="Головний сценарій AI Charity Connect">
+    <div>
+      <span class="agent-kicker">AI CHARITY AGENT · MCP «СІЛЬПО»</span>
+      <h2>Від потреби фонду — до перевіреного кошика</h2>
+      <p>Для CSR та операційної команди «Сільпо» і благодійних фондів: агент знаходить доступні товари, узгоджує допомогу й виконує дію лише після підтвердження.</p>
+    </div>
+    <div class="agent-flow" aria-label="Етапи роботи агента">
+      <span>Запит фонду</span><b>→</b><span>MCP-пошук</span><b>→</b><span>Підтвердження</span>
+    </div>
+    <button class="btn btn-primary" onclick="switchTab('transfer')">Запустити агента →</button>
+  </section>
+  <section class="mcp-proof-card" aria-label="Перевірка офіційного MCP Сільпо">
+    <div><span class="agent-kicker">LIVE EVIDENCE</span><h3>Офіційний MCP у робочому сценарії</h3><p>Без персональних даних: показуємо лише факт успішного виконання tools.</p></div>
+    <div id="mcpProofChecks" class="mcp-proof-checks"><span class="proof-pending">Перевірка MCP…</span></div>
+    <button class="btn btn-outline-dark btn-sm" onclick="loadMcpProof(true)">Перевірити знову</button>
+  </section>
 
   <!-- ─── Dashboard Tab ─── -->
   <section id="tab-dashboard" class="tab-content active">
@@ -84,30 +113,30 @@
       <span class="last-updated" id="lastUpdated"></span>
     </div>
     <div class="cards-grid">
-      <div class="card card-stat">
+      <div class="card card-stat card-clickable" role="button" tabindex="0" onclick="openInventoryFromDashboard('all')" onkeydown="handleDashboardCardKey(event, 'all')">
         <div class="card-icon">📦</div>
         <div class="card-value" id="statTotal" data-target="0">—</div>
         <div class="card-label">Всього товарів</div>
       </div>
-      <div class="card card-stat card-danger">
+      <div class="card card-stat card-danger card-clickable" role="button" tabindex="0" onclick="openInventoryFromDashboard('atRisk')" onkeydown="handleDashboardCardKey(event, 'atRisk')">
         <div class="card-icon">⚠️</div>
         <div class="card-value" id="statAtRisk" data-target="0">—</div>
         <div class="card-label">Під ризиком списання</div>
       </div>
-      <div class="card card-stat card-warning">
+      <div class="card card-stat card-warning card-clickable" role="button" tabindex="0" onclick="openInventoryFromDashboard('anomalies')" onkeydown="handleDashboardCardKey(event, 'anomalies')">
         <div class="card-icon">📉</div>
         <div class="card-value" id="statAnomalies" data-target="0">—</div>
         <div class="card-label">Аномалії попиту</div>
       </div>
-      <div class="card card-stat card-info">
+      <div class="card card-stat card-info card-clickable" role="button" tabindex="0" onclick="openInventoryFromDashboard('loss')" onkeydown="handleDashboardCardKey(event, 'loss')">
         <div class="card-icon">💰</div>
         <div class="card-value" id="statLoss" data-target="0">—</div>
         <div class="card-label">Прогнозовані збитки</div>
       </div>
-      <div class="card card-stat card-danger">
+      <div class="card card-stat card-danger card-clickable" role="button" tabindex="0" onclick="openInventoryFromDashboard('avgRns')" onkeydown="handleDashboardCardKey(event, 'avgRns')">
         <div class="card-icon">📊</div>
         <div class="card-value" id="statAvgRNS" data-target="0">—</div>
-        <div class="card-label">Середній RNS</div>
+        <div class="card-label" title="RNS — Risk of Non-Sale">Середній ризик непродажу</div>
       </div>
     </div>
 
@@ -172,6 +201,29 @@
       <h2 class="card-title">Топ-товарів за ризиком нереалізації</h2>
       <div id="topRiskTable" class="table-container"></div>
     </div>
+
+    <div class="cards-grid cards-2 readiness-grid">
+      <div class="card">
+        <h2 class="card-title">🧪 Валідація цінності</h2>
+        <p class="validation-hypothesis"><strong>Гіпотеза:</strong> агент скорочує час від запиту фонду до підтвердженого плану з 30–60 до 5 хвилин.</p>
+        <div class="metric-list">
+          <div><strong>≤ 5 хв</strong><span>час формування плану</span></div>
+          <div><strong>≥ 80%</strong><span>покриття потреби фонду</span></div>
+          <div><strong>0</strong><span>перевищень stock і блокуючих cart errors</span></div>
+          <div><strong>3–5</strong><span>інтерв’ю з фондами для пілоту</span></div>
+        </div>
+        <p class="validation-note">Пілот: 1 магазин × 1 фонд × 2 категорії × 2 тижні. Результати не вигадуємо — ці метрики мають бути виміряні під час тестування.</p>
+      </div>
+      <div class="card">
+        <h2 class="card-title">🏗️ Реалістична інтеграція</h2>
+        <div class="architecture-flow">
+          <span><b>Внутрішні retail-дані</b><small>продажі, партії, строки</small></span><i>→</i>
+          <span><b>AI Charity Connect</b><small>RNS, Donation Score, matching</small></span><i>→</i>
+          <span><b>Офіційний MCP</b><small>каталог, доставка, кошик</small></span>
+        </div>
+        <p class="validation-note">У прототипі retail-прогноз використовує синтетичний dataset. MCP-частина є live і виконує реальні tools авторизованого Гостя.</p>
+      </div>
+    </div>
   </section>
 
   <!-- ─── Inventory Tab ─── -->
@@ -195,6 +247,77 @@
         <input type="text" id="searchFilter" class="input" placeholder="Пошук товару..." oninput="debouncedFilterInventory()">
       </div>
       <div id="inventoryTable" class="table-container"></div>
+    </div>
+  </section>
+
+  <!-- ─── Trends Tab ─── -->
+  <section id="tab-trends" class="tab-content">
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">📈 Тренди продажів та прогнози</h2>
+        <button class="btn btn-primary btn-sm" onclick="loadTrends()">🔄 Оновити</button>
+      </div>
+      <div class="filters">
+        <select id="trendCategoryFilter" class="select" onchange="filterTrends()">
+          <option value="">Всі категорії</option>
+        </select>
+        <select id="trendRiskFilter" class="select" onchange="filterTrends()">
+          <option value="">Всі рівні ризику</option>
+          <option value="critical">🔴 Критичний</option>
+          <option value="high">🟠 Високий</option>
+          <option value="medium">🟡 Середній</option>
+          <option value="low">🟢 Низький</option>
+        </select>
+        <input type="text" id="trendSearchFilter" class="input" placeholder="Пошук товару..." oninput="filterTrends()">
+      </div>
+    </div>
+    <div id="trendsCategorySummary" class="cards-grid"></div>
+    <div id="trendsCharts" class="trends-charts">
+      <p class="empty-state">Натисніть «Оновити» для завантаження трендів</p>
+    </div>
+  </section>
+
+  <!-- ─── Decisions Tab ─── -->
+  <section id="tab-decisions" class="tab-content">
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">✅ Вибірка: рішення щодо закупівлі</h2>
+        <button class="btn btn-primary btn-sm" onclick="loadDecisions()">🔄 Оновити</button>
+      </div>
+      <p style="color:var(--text-light);margin-bottom:16px">Готові кошики для різних людей і сценаріїв: виберіть пресет, перегляньте підібрані товари й одним кліком позначте весь набір як покупку.</p>
+      <div id="basketPresets" class="basket-presets"></div>
+      <div id="basketPreview" class="basket-preview">
+        <p class="empty-state">Оберіть готовий кошик, щоб побачити підбір товарів</p>
+      </div>
+      <div id="decisionsSummary" class="cards-grid"></div>
+      <div class="filters">
+        <select id="decisionFilter" class="select" onchange="renderDecisionsTable()">
+          <option value="">Всі товари</option>
+          <option value="undecided">⬜ Не вирішено</option>
+          <option value="buy">✅ Купувати</option>
+          <option value="nobuy">❌ Не купувати</option>
+          <option value="keep">📦 Утримати</option>
+          <option value="nokeep">📤 Не утримати</option>
+        </select>
+      </div>
+      <div id="decisionsTable" class="table-container"></div>
+    </div>
+  </section>
+
+  <!-- ─── Charity Items Tab ─── -->
+  <section id="tab-charity-items" class="tab-content">
+    <div class="card">
+      <div class="card-header-row">
+        <h2 class="card-title">🎁 Благодійні товари</h2>
+        <button class="btn btn-primary btn-sm" onclick="loadCharityItems()">🔄 Оновити</button>
+      </div>
+      <p style="color: var(--text-light); font-size: 13px; margin-bottom: 16px;">
+        Товари, які було врятовано від списання та передано на благодійність замість утилізації.
+      </p>
+      <div id="charityItemsSummary" class="cards-grid"></div>
+      <div id="charityItemsList" class="charity-items-grid">
+        <p class="empty-state">Натисніть «Оновити»</p>
+      </div>
     </div>
   </section>
 
@@ -262,10 +385,11 @@
     <div class="card">
       <div class="card-header-row">
         <h2 class="card-title">Оптимальний план передачі</h2>
-        <button class="btn btn-primary" onclick="generatePlan()">Згенерувати план</button>
+        <button id="runAgentBtn" class="btn btn-primary" onclick="generatePlan()">Запустити MCP-агента</button>
       </div>
+      <p style="color:var(--text-light);margin-bottom:16px">Агент бере потреби фонду, отримує контекст активного кошика, перевіряє слот доставки, знаходить реальні товари в каталозі «Сільпо» і лише після вашого підтвердження змінює кошик.</p>
       <div id="transferPlans" class="transfer-plans">
-        <p class="empty-state">Натисніть «Згенерувати план» для аналізу</p>
+        <p class="empty-state">Натисніть «Запустити MCP-агента», щоб побачити послідовність реальних tool-викликів</p>
       </div>
     </div>
   </section>
@@ -290,6 +414,7 @@
 <footer class="footer">
   <p>AI Charity Connect · Hackathon 2026 · Powered by Silpo MCP</p>
   <p class="footer-meme">Зроблено з ❤️ та недоспаними ночами · Не списуйте їжу, роздавайте!</p>
+  <p class="footer-team">Розробила команда «Каніфоль»</p>
 </footer>
 
 <div id="loadingOverlay" class="loading-overlay" style="display:none;">
@@ -307,7 +432,7 @@
       <button class="btn btn-outline-dark btn-sm" onclick="closeShortcuts()">✕</button>
     </div>
     <div class="shortcuts-grid">
-      <div class="shortcut-item"><kbd>1</kbd>–<kbd>5</kbd> <span>Перемикання вкладок</span></div>
+      <div class="shortcut-item"><kbd>1</kbd>–<kbd>8</kbd> <span>Перемикання вкладок</span></div>
       <div class="shortcut-item"><kbd>T</kbd> <span>Темна / світла тема</span></div>
       <div class="shortcut-item"><kbd>?</kbd> <span>Ця довідка</span></div>
       <div class="shortcut-item"><kbd>Esc</kbd> <span>Закрити</span></div>
