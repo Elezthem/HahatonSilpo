@@ -409,6 +409,53 @@ async function loadProducts() {
   return demoProducts;
 }
 
+function pickDiscountTarget(products, requestedDiscountPercent) {
+  const discountPercent = Math.max(3, Math.min(Number(requestedDiscountPercent) || 5, 35));
+  const enriched = products.map(product => {
+    const risk = product.riskAnalysis || analyzer.predictWriteOffRisk(product);
+    const discountEffect = Math.min(28, Math.round(discountPercent * 0.8));
+    const improvedRns = Math.max(0, (risk.rns || 0) - discountEffect);
+    const urgencyScore = Math.max(0, 14 - (product.daysToExpiry || 0)) * 3;
+    const overstockScore = Math.max(0, (risk.projectedRemaining || 0)) * 1.5;
+    const anomalyScore = Array.isArray(risk.analysis?.anomalies) ? risk.analysis.anomalies.length * 6 : 0;
+    const marginScore = Math.max(0, 40 - Number(product.price || 0) * 0.12);
+    const score = (risk.rns || 0) * 1.4 + urgencyScore + overstockScore + anomalyScore + marginScore;
+    const likelyOutcome = improvedRns <= 25 ? 'піде в швидкий продаж'
+      : improvedRns <= 55 ? 'має хороший шанс розвантажити залишок'
+        : 'частково зменшить ризик списання';
+
+    return {
+      ...product,
+      riskAnalysis: risk,
+      aiDiscountScore: Math.round(score),
+      suggestedDiscountPercent: discountPercent,
+      improvedRns,
+      likelyOutcome,
+    };
+  }).filter(product => (product.stock || 0) > 0);
+
+  enriched.sort((left, right) => (
+    (right.aiDiscountScore - left.aiDiscountScore)
+      || ((right.riskAnalysis?.rns || 0) - (left.riskAnalysis?.rns || 0))
+      || ((left.daysToExpiry || 999) - (right.daysToExpiry || 999))
+  ));
+
+  const winner = enriched[0];
+  if (!winner) return null;
+
+  const reasons = [];
+  if ((winner.riskAnalysis?.rns || 0) >= 70) reasons.push('ризик непродажу вже дуже високий');
+  if ((winner.daysToExpiry || 0) <= 5) reasons.push(`залишилось лише ${winner.daysToExpiry} дн. до завершення терміну`);
+  if ((winner.riskAnalysis?.projectedRemaining || 0) > 0) reasons.push(`прогнозується надлишок ${winner.riskAnalysis.projectedRemaining} од.`);
+  if (winner.riskAnalysis?.analysis?.trend === 'declining') reasons.push('попит іде вниз');
+  if (Array.isArray(winner.riskAnalysis?.analysis?.anomalies) && winner.riskAnalysis.analysis.anomalies.length > 0) reasons.push('модель бачить аномалію попиту');
+
+  return {
+    product: winner,
+    explanation: reasons.length ? reasons.join(', ') : 'модель бачить потенціал швидко розвантажити залишок через знижку',
+  };
+}
+
 // ─── HTTP Server ─────────────────────────────────────────────────────
 
 const MIME_TYPES = {
@@ -938,6 +985,45 @@ const server = http.createServer(async (req, res) => {
         categoryTrends.sort((a, b) => b.avgRNS - a.avgRNS);
 
         sendJSON(res, 200, { products: analyzed, categoryTrends });
+        return;
+      }
+
+      if (pathname === '/api/discount-tap' && method === 'POST') {
+        const body = await readBody(req);
+        const tapCount = Math.max(1, Math.min(Number(body.tapCount) || 1, 500));
+        const requestedDiscountPercent = Math.max(3, Math.min(Math.floor(tapCount / 4) + 3, 35));
+        const products = await getProducts();
+        const analyzed = analyzer.analyzeInventory(products);
+        const target = pickDiscountTarget(analyzed.products, requestedDiscountPercent);
+        if (!target) {
+          sendJSON(res, 404, { error: 'Не вдалося знайти товар для знижки' });
+          return;
+        }
+
+        sendJSON(res, 200, {
+          tapCount,
+          requestedDiscountPercent,
+          targetProduct: {
+            id: target.product.id,
+            name: target.product.name,
+            category: target.product.category,
+            storeName: target.product.storeName,
+            storeAddress: target.product.storeAddress,
+            price: target.product.price,
+            stock: target.product.stock,
+            daysToExpiry: target.product.daysToExpiry,
+            rns: target.product.riskAnalysis?.rns || 0,
+            improvedRns: target.product.improvedRns,
+            projectedRemaining: target.product.riskAnalysis?.projectedRemaining || 0,
+            suggestedDiscountPercent: target.product.suggestedDiscountPercent,
+            likelyOutcome: target.product.likelyOutcome,
+            aiDiscountScore: target.product.aiDiscountScore,
+          },
+          agentDecision: `ШІ агент пропонує дати ${target.product.suggestedDiscountPercent}% знижки на "${target.product.name}".`,
+          explanation: target.explanation,
+          source: usingDemoData ? 'demo' : 'mcp',
+          generatedAt: new Date().toISOString(),
+        });
         return;
       }
 

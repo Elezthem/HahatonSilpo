@@ -106,6 +106,33 @@
   </section>
 
   <!-- ─── Dashboard Tab ─── -->
+  <section class="discount-game card" aria-label="Тапалка знижок">
+    <div class="discount-game-head">
+      <div>
+        <span class="agent-kicker">DISCOUNT TAP GAME</span>
+        <h2 class="card-title">Натапай знижку, а ШІ обере товар</h2>
+        <p class="discount-game-copy">Тисни кнопку, накопичуй % знижки, а агент вирішить, на який товар вона дасть найбільший ефект.</p>
+      </div>
+      <div class="discount-game-stats">
+        <div><strong id="discountTapCount">0</strong><span>тапів</span></div>
+        <div><strong id="discountPercent">3%</strong><span>знижка</span></div>
+        <div><strong id="discountModeLabel">demo</strong><span>режим</span></div>
+      </div>
+    </div>
+    <div class="discount-meter">
+      <div id="discountMeterFill" class="discount-meter-fill" style="width:0%"></div>
+    </div>
+    <div class="discount-game-actions">
+      <button id="tapDiscountBtn" class="btn btn-primary discount-tap-btn" onclick="tapDiscount()">Тапнути знижку</button>
+      <button class="btn btn-outline-dark" onclick="resetDiscountTapGame()">Скинути</button>
+      <button class="btn btn-outline-dark" onclick="resolveDiscountTarget()">ШІ визначає товар</button>
+    </div>
+    <div id="discountTapHint" class="discount-tap-hint">Кожні 4 тапи додають +1% знижки. Максимум 35%.</div>
+    <div id="discountTapResult" class="discount-result">
+      <p class="empty-state">Натисни кнопку кілька разів, і ми покажемо, куди ШІ відправить знижку</p>
+    </div>
+  </section>
+
   <section id="tab-dashboard" class="tab-content active">
     <div class="toolbar-row">
       <button class="btn btn-primary btn-sm" onclick="loadDashboard()">🔄 Оновити</button>

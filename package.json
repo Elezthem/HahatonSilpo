@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check lib/mcp-client.js && node --check lib/analyzer.js && node --check public/app.js"
   },
   "keywords": ["mcp", "silpo", "charity", "ai", "hackathon"],
   "license": "MIT"
