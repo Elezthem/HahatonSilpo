@@ -14,6 +14,9 @@ let dashboardPromise = null;
 let dashboardLoadedAt = 0;
 let inventoryQuickFilter = 'all';
 let activeBasketPresetId = null;
+let discountTapCount = 0;
+let discountTapBusy = false;
+let discountTapResult = null;
 
 const basketPresets = [
   { id: 'men', icon: '🧔', title: 'Кошик для чоловіків', subtitle: 'Ситно й практично', categories: ['М\'ясо', 'Ковбаси', 'Хлібобулочні', 'Напої'], keywords: ['ковбас', 'сир', 'хліб', 'бургер', 'сосиск', 'стік', 'паста'], budget: 900, limit: 6 },
@@ -26,6 +29,262 @@ const basketPresets = [
   { id: 'holiday-picnic', icon: '🧺', title: 'Свято: Пікнік', subtitle: 'На компанію на природі', categories: ['М\'ясо', 'Напої', 'Хлібобулочні', 'Овочі'], keywords: ['ковбас', 'сосиск', 'вода', 'сік', 'хліб', 'томат', 'огір'], budget: 1700, limit: 8 },
   { id: 'holiday-romantic', icon: '🌹', title: 'Свято: Романтичний вечір', subtitle: 'Маленький, але приємний набір', categories: ['Кондитерські', 'Фрукти', 'Молочні продукти', 'Напої'], keywords: ['шоколад', 'полуниц', 'виноград', 'сир', 'сік'], budget: 1100, limit: 6 },
 ];
+
+const STATIC_DEMO_MODE = location.hostname.endsWith('github.io') || location.protocol === 'file:';
+const DEMO_STORAGE_KEYS = {
+  charityRequests: 'ai-charity-connect-demo-charity-requests',
+  charityItems: 'ai-charity-connect-demo-charity-items',
+  decisions: 'ai-charity-connect-demo-decisions',
+};
+const demoCache = {};
+
+function deepClone(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+async function loadDemoFile(name) {
+  if (!demoCache[name]) {
+    const response = await fetch(`demo/${name}.json`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Не вдалося завантажити demo/${name}.json`);
+    demoCache[name] = await response.json();
+  }
+  return deepClone(demoCache[name]);
+}
+
+function readDemoStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : deepClone(fallback);
+  } catch (error) {
+    return deepClone(fallback);
+  }
+}
+
+function writeDemoStorage(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+  return deepClone(value);
+}
+
+async function getDemoCollection(name, storageKey, fallbackPath) {
+  const fallback = await loadDemoFile(fallbackPath);
+  return readDemoStorage(storageKey, fallback[name] || fallback);
+}
+
+function createDemoError(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
+function scoreDemoProduct(product, requestedDiscountPercent) {
+  const rns = Number(product.riskAnalysis?.rns || product.rns || 0);
+  const daysToExpiry = Number(product.daysToExpiry || 0);
+  const projectedRemaining = Number(product.riskAnalysis?.projectedRemaining || product.projectedRemaining || 0);
+  return (rns * 2.2) + projectedRemaining - daysToExpiry + requestedDiscountPercent;
+}
+
+async function demoApi(method, path, body) {
+  if (method === 'GET' && path === '/api/status') {
+    const status = await loadDemoFile('status');
+    status.mcpAuthenticated = false;
+    status.mcpConnected = false;
+    status.dataSource = 'demo';
+    status.timestamp = new Date().toISOString();
+    return status;
+  }
+
+  if (method === 'GET' && path === '/api/dashboard') {
+    const dashboard = await loadDemoFile('dashboard');
+    dashboard.generatedAt = new Date().toISOString();
+    return dashboard;
+  }
+
+  if (method === 'GET' && path === '/api/products') return loadDemoFile('products');
+  if (method === 'GET' && path === '/api/trends') return loadDemoFile('trends');
+  if (method === 'GET' && path === '/api/network') return loadDemoFile('network');
+  if (method === 'GET' && path === '/api/mcp-proof') return loadDemoFile('mcp-proof');
+
+  if (method === 'GET' && path === '/api/charity-requests') {
+    return { requests: await getDemoCollection('requests', DEMO_STORAGE_KEYS.charityRequests, 'charity-requests') };
+  }
+
+  if (method === 'POST' && path === '/api/charity-request') {
+    const requests = await getDemoCollection('requests', DEMO_STORAGE_KEYS.charityRequests, 'charity-requests');
+    const created = {
+      id: `cr${Date.now()}`,
+      organizationName: body.organizationName,
+      categories: body.categories || [],
+      quantity: Number(body.quantity) || 0,
+      priority: body.priority || 'normal',
+      deliveryAddress: body.deliveryAddress || '',
+      deadline: Number(body.deadline) || 3,
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+    };
+    requests.unshift(created);
+    writeDemoStorage(DEMO_STORAGE_KEYS.charityRequests, requests);
+    return created;
+  }
+
+  if (method === 'GET' && path === '/api/charity-items') {
+    const items = await getDemoCollection('items', DEMO_STORAGE_KEYS.charityItems, 'charity-items');
+    return { items, count: items.length };
+  }
+
+  if (method === 'POST' && path === '/api/charity-item') {
+    const items = await getDemoCollection('items', DEMO_STORAGE_KEYS.charityItems, 'charity-items');
+    const existingIndex = items.findIndex(item => item.productId === body.productId);
+    const nextItem = {
+      id: existingIndex >= 0 ? items[existingIndex].id : `ci${Date.now()}`,
+      productId: body.productId,
+      productName: body.productName,
+      category: body.category,
+      storeName: body.storeName,
+      storeAddress: body.storeAddress,
+      stock: Number(body.stock) || 0,
+      quantity: Number(body.quantity) || 0,
+      price: Number(body.price) || 0,
+      daysToExpiry: Number(body.daysToExpiry) || 0,
+      rns: Number(body.rns) || 0,
+      riskLevel: body.riskLevel || 'high',
+      reason: body.reason || '',
+      status: 'available',
+      addedAt: existingIndex >= 0 ? items[existingIndex].addedAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    if (existingIndex >= 0) items[existingIndex] = nextItem;
+    else items.unshift(nextItem);
+    writeDemoStorage(DEMO_STORAGE_KEYS.charityItems, items);
+    return nextItem;
+  }
+
+  if (method === 'DELETE' && path === '/api/charity-item') {
+    const items = await getDemoCollection('items', DEMO_STORAGE_KEYS.charityItems, 'charity-items');
+    const filtered = items.filter(item => item.productId !== body.productId);
+    writeDemoStorage(DEMO_STORAGE_KEYS.charityItems, filtered);
+    return { success: true };
+  }
+
+  if (method === 'GET' && path === '/api/decisions') {
+    const decisions = await getDemoCollection('decisions', DEMO_STORAGE_KEYS.decisions, 'decisions');
+    return { decisions, count: decisions.length };
+  }
+
+  if (method === 'POST' && path === '/api/decision') {
+    const decisions = await getDemoCollection('decisions', DEMO_STORAGE_KEYS.decisions, 'decisions');
+    const existingIndex = decisions.findIndex(item => item.productId === body.productId);
+    const nextDecision = {
+      productId: body.productId,
+      productName: body.productName,
+      buy: !!body.buy,
+      keep: !!body.keep,
+      decidedAt: new Date().toISOString(),
+    };
+    if (existingIndex >= 0) decisions[existingIndex] = nextDecision;
+    else decisions.unshift(nextDecision);
+    writeDemoStorage(DEMO_STORAGE_KEYS.decisions, decisions);
+    return nextDecision;
+  }
+
+  if (method === 'POST' && path === '/api/mcp-authenticate') {
+    return {
+      success: false,
+      error: 'GitHub Pages не підтримує Node/MCP OAuth. Для live MCP запускайте проєкт локально через server.js.',
+    };
+  }
+
+  if (method === 'POST' && path === '/api/mcp-charity-plan') {
+    const requests = await getDemoCollection('requests', DEMO_STORAGE_KEYS.charityRequests, 'charity-requests');
+    const dashboard = await loadDemoFile('dashboard');
+    const request = requests[0];
+    if (!request) throw createDemoError('Немає активних запитів від благодійних організацій', 'NO_REQUESTS');
+    const terms = (request.categories || []).map(value => String(value).toLowerCase());
+    const selected = dashboard.products
+      .filter(product => {
+        const haystack = `${product.name} ${product.category}`.toLowerCase();
+        return terms.some(term => haystack.includes(term));
+      })
+      .sort((left, right) => (right.riskAnalysis?.rns || 0) - (left.riskAnalysis?.rns || 0))
+      .slice(0, 5)
+      .map(product => ({
+        productId: product.id,
+        companyId: 'demo-company',
+        branchId: product.storeId || 'demo-branch',
+        name: product.name,
+        category: product.category,
+        storeName: product.storeName,
+        price: product.price,
+        stock: product.stock,
+        quantity: Math.max(1, Math.min(product.stock, Math.ceil(request.quantity / 5))),
+        donationScore: Math.min(100, Math.round((product.riskAnalysis?.rns || 0) * 0.7 + 25)),
+        matchReason: 'Підібрано з локального demo-набору для GitHub Pages',
+      }));
+    const total = selected.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return {
+      source: 'demo',
+      request,
+      selected,
+      totalItems: selected.length,
+      estimatedTotal: total,
+      shoppingCartId: 'demo-cart',
+      planId: `demo-plan-${Date.now()}`,
+      slotValidated: true,
+      trace: [
+        { tool: 'static-demo-match', status: 'success', details: 'GitHub Pages fallback', timestamp: new Date().toISOString() },
+      ],
+      canConfirm: selected.length > 0,
+    };
+  }
+
+  if (method === 'POST' && path === '/api/mcp-charity-confirm') {
+    return {
+      success: true,
+      message: 'Demo-план підтверджено локально. На GitHub Pages це імітація без реальної зміни кошика Silpo.',
+      validations: [],
+      blockingErrors: [],
+      trace: [
+        { tool: 'static-demo-confirm', status: 'success', details: 'No live MCP on GitHub Pages', timestamp: new Date().toISOString() },
+      ],
+    };
+  }
+
+  if (method === 'POST' && path === '/api/discount-tap') {
+    const dashboard = await loadDemoFile('dashboard');
+    const tapCount = Math.max(1, Number(body?.tapCount) || 1);
+    const requestedDiscountPercent = Math.max(3, Math.min(Math.floor(tapCount / 4) + 3, 35));
+    const target = dashboard.products
+      .slice()
+      .sort((left, right) => scoreDemoProduct(right, requestedDiscountPercent) - scoreDemoProduct(left, requestedDiscountPercent))[0];
+    if (!target) throw createDemoError('Не вдалося знайти товар для знижки', 'NO_PRODUCT');
+    const rns = Number(target.riskAnalysis?.rns || 0);
+    return {
+      tapCount,
+      requestedDiscountPercent,
+      targetProduct: {
+        id: target.id,
+        name: target.name,
+        category: target.category,
+        storeName: target.storeName,
+        storeAddress: target.storeAddress,
+        price: target.price,
+        stock: target.stock,
+        daysToExpiry: target.daysToExpiry,
+        rns,
+        improvedRns: Math.max(5, rns - Math.round(requestedDiscountPercent * 1.4)),
+        projectedRemaining: Number(target.riskAnalysis?.projectedRemaining || 0),
+        suggestedDiscountPercent: requestedDiscountPercent,
+        likelyOutcome: 'demo',
+        aiDiscountScore: Math.round(scoreDemoProduct(target, requestedDiscountPercent)),
+      },
+      agentDecision: `ШІ агент пропонує дати ${requestedDiscountPercent}% знижки на "${target.name}".`,
+      explanation: 'На GitHub Pages використовується статичний demo-розрахунок без серверного MCP.',
+      source: 'demo',
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  throw createDemoError(`Маршрут ${method} ${path} недоступний у GitHub Pages demo-режимі`, 'DEMO_ROUTE_NOT_FOUND');
+}
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({
@@ -93,6 +352,7 @@ function animateNumber(el, target, duration = 1000, suffix = '') {
 
 // ═══ API Helpers ════════════════════════════════════════
 async function api(method, path, body = null) {
+  if (STATIC_DEMO_MODE) return demoApi(method, path, body);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20_000);
   const opts = {
@@ -144,11 +404,95 @@ function showToast(message, type = 'error') {
   }, 4000);
 }
 
+function getDiscountPercentFromTaps(tapCount) {
+  return Math.max(3, Math.min(Math.floor(Number(tapCount || 0) / 4) + 3, 35));
+}
+
+function updateDiscountGameStats(source) {
+  const tapCountEl = document.getElementById('discountTapCount');
+  const percentEl = document.getElementById('discountPercent');
+  const modeEl = document.getElementById('discountModeLabel');
+  const meterEl = document.getElementById('discountMeterFill');
+  if (tapCountEl) tapCountEl.textContent = String(discountTapCount);
+  if (percentEl) percentEl.textContent = `${getDiscountPercentFromTaps(discountTapCount)}%`;
+  if (modeEl && source) modeEl.textContent = source;
+  if (meterEl) meterEl.style.width = `${Math.min(100, (getDiscountPercentFromTaps(discountTapCount) / 35) * 100)}%`;
+}
+
+function renderDiscountTapResult(result) {
+  discountTapResult = result || null;
+  const container = document.getElementById('discountTapResult');
+  if (!container) return;
+  if (!result || !result.targetProduct) {
+    container.innerHTML = '<p class="empty-state">Натисни кнопку кілька разів, і ми покажемо, куди ШІ відправить знижку</p>';
+    return;
+  }
+
+  const product = result.targetProduct;
+  container.innerHTML = `
+    <div class="discount-result-card">
+      <div>
+        <span class="basket-preview-kicker">AI discount decision</span>
+        <h3>${escapeHtml(product.name)}</h3>
+        <p><strong>${escapeHtml(result.agentDecision)}</strong></p>
+        <p>${escapeHtml(result.explanation)}</p>
+        <p class="discount-result-note">${escapeHtml(product.storeName)} · ${escapeHtml(product.category)}</p>
+      </div>
+      <div class="discount-result-meta">
+        <div><strong>${product.suggestedDiscountPercent}%</strong><span>знижка</span></div>
+        <div><strong>${product.rns}% → ${product.improvedRns}%</strong><span>ризик</span></div>
+        <div><strong>${product.daysToExpiry}</strong><span>днів до кінця</span></div>
+        <div><strong>${product.projectedRemaining}</strong><span>прогнозний надлишок</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function resetDiscountTapGame() {
+  discountTapCount = 0;
+  discountTapResult = null;
+  updateDiscountGameStats(discountTapResult?.source || 'demo');
+  renderDiscountTapResult(null);
+}
+
+function tapDiscount() {
+  if (discountTapBusy) return;
+  discountTapCount += 1;
+  updateDiscountGameStats(discountTapResult?.source || 'demo');
+  const btn = document.getElementById('tapDiscountBtn');
+  if (btn) {
+    btn.classList.remove('bump');
+    void btn.offsetWidth;
+    btn.classList.add('bump');
+    setTimeout(() => btn.classList.remove('bump'), 180);
+  }
+  if (discountTapCount > 0 && discountTapCount % 12 === 0) {
+    showToast(`Знижка виросла до ${getDiscountPercentFromTaps(discountTapCount)}%`, 'success');
+  }
+}
+
+async function resolveDiscountTarget() {
+  if (discountTapBusy) return;
+  discountTapBusy = true;
+  try {
+    const result = await api('POST', '/api/discount-tap', { tapCount: discountTapCount });
+    updateDiscountGameStats(result.source);
+    renderDiscountTapResult(result);
+    showToast(`ШІ відправив ${result.requestedDiscountPercent}% знижки на "${result.targetProduct.name}"`, 'success');
+  } catch (e) {
+    showToast('Помилка визначення товару для знижки: ' + e.message);
+  } finally {
+    discountTapBusy = false;
+  }
+}
+
 // ═══ Init ═══════════════════════════════════════════════
 async function init() {
   createBackgroundParticles();
   createSnow();
   initTheme();
+  updateDiscountGameStats('demo');
+  renderDiscountTapResult(null);
   initScrollPerf();
   initKeyboardShortcuts();
   initBackToTop();
@@ -316,6 +660,7 @@ async function loadDashboardData() {
     const analysis = await api('GET', '/api/dashboard');
     inventoryData = analysis;
     dashboardLoadedAt = Date.now();
+    updateDiscountGameStats(analysis.source);
     const sourceBanner = document.getElementById('dataSourceBanner');
     if (sourceBanner) {
       sourceBanner.className = `source-banner ${analysis.source === 'mcp' ? 'source-live' : 'source-model'}`;

@@ -1,0 +1,26 @@
+﻿{
+    "decisions":  [
+                      {
+                          "productId":  "p1",
+                          "productName":  "Молоко 2.5% 1л",
+                          "buy":  true,
+                          "keep":  true,
+                          "decidedAt":  "2026-08-30T10:21:15.962Z"
+                      },
+                      {
+                          "productId":  "p3",
+                          "productName":  "Сметана 20% 350г",
+                          "buy":  false,
+                          "keep":  true,
+                          "decidedAt":  "2026-08-30T10:07:32.068Z"
+                      },
+                      {
+                          "productId":  "p6",
+                          "productName":  "Хліб білий нарізний",
+                          "buy":  false,
+                          "keep":  false,
+                          "decidedAt":  "2026-08-30T10:12:13.939Z"
+                      }
+                  ],
+    "count":  3
+}

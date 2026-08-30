@@ -1,0 +1,49 @@
+﻿{
+    "requests":  [
+                     {
+                         "id":  "cr1",
+                         "organizationName":  "Благодійний фонд «Разом»",
+                         "categories":  [
+                                            "молочн",
+                                            "хліб",
+                                            "бакал"
+                                        ],
+                         "quantity":  50,
+                         "priority":  "high",
+                         "deliveryAddress":  "Київ, вул. Межигірська, 24",
+                         "deadline":  3,
+                         "createdAt":  "2026-08-29T10:25:24.626Z",
+                         "status":  "pending"
+                     },
+                     {
+                         "id":  "cr2",
+                         "organizationName":  "ГО «Карітас Україна»",
+                         "categories":  [
+                                            "бакал",
+                                            "овоч",
+                                            "заморож"
+                                        ],
+                         "quantity":  80,
+                         "priority":  "normal",
+                         "deliveryAddress":  "Київ, вул. Велика Васильківська, 30",
+                         "deadline":  5,
+                         "createdAt":  "2026-08-29T22:25:24.628Z",
+                         "status":  "pending"
+                     },
+                     {
+                         "id":  "cr3",
+                         "organizationName":  "Фонд «Табличка»",
+                         "categories":  [
+                                            "напій",
+                                            "кондит",
+                                            "хліб"
+                                        ],
+                         "quantity":  30,
+                         "priority":  "normal",
+                         "deliveryAddress":  "Київ, вул. Прорізна, 14",
+                         "deadline":  7,
+                         "createdAt":  "2026-08-30T08:25:24.628Z",
+                         "status":  "pending"
+                     }
+                 ]
+}

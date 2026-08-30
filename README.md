@@ -65,3 +65,13 @@ npm start
 ```bash
 npm run check
 ```
+# AI Charity Connect
+
+## GitHub Pages
+
+This repository is configured to deploy the `public/` folder to GitHub Pages through `.github/workflows/pages.yml`.
+
+Important:
+- GitHub Pages runs the static demo version of the site.
+- Live `server.js` APIs and Silpo MCP OAuth do not run on GitHub Pages.
+- For full live MCP functionality, run the project locally with `node server.js`.

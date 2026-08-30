@@ -1,0 +1,230 @@
+﻿{
+    "stores":  [
+                   {
+                       "storeId":  "s3",
+                       "storeName":  "Сільпо ТЦ «City Mall»",
+                       "storeAddress":  "Київ, просп. Перемоги, 46",
+                       "totalProducts":  9,
+                       "atRiskProducts":  7,
+                       "criticalRisk":  6,
+                       "highRisk":  1,
+                       "mediumRisk":  0,
+                       "lowRisk":  2,
+                       "totalStock":  465,
+                       "projectedWriteOff":  207,
+                       "projectedLossValue":  19474,
+                       "totalRNS":  683,
+                       "categories":  {
+                                          "Молочні продукти":  {
+                                                                   "total":  1,
+                                                                   "atRisk":  1,
+                                                                   "writeOff":  21
+                                                               },
+                                          "Хлібобулочні":  {
+                                                               "total":  1,
+                                                               "atRisk":  1,
+                                                               "writeOff":  8
+                                                           },
+                                          "М\u0027ясо та ковбаси":  {
+                                                                        "total":  1,
+                                                                        "atRisk":  1,
+                                                                        "writeOff":  10
+                                                                    },
+                                          "Овочі та фрукти":  {
+                                                                  "total":  1,
+                                                                  "atRisk":  1,
+                                                                  "writeOff":  70
+                                                              },
+                                          "Напої":  {
+                                                        "total":  2,
+                                                        "atRisk":  1,
+                                                        "writeOff":  34
+                                                    },
+                                          "Кондитерські":  {
+                                                               "total":  2,
+                                                               "atRisk":  2,
+                                                               "writeOff":  64
+                                                           },
+                                          "Заморожені":  {
+                                                             "total":  1,
+                                                             "atRisk":  0,
+                                                             "writeOff":  0
+                                                         }
+                                      },
+                       "avgRNS":  76
+                   },
+                   {
+                       "storeId":  "s4",
+                       "storeName":  "Сільпо ТЦ «Оазис»",
+                       "storeAddress":  "Київ, вул. Бориспільська, 9",
+                       "totalProducts":  9,
+                       "atRiskProducts":  5,
+                       "criticalRisk":  4,
+                       "highRisk":  1,
+                       "mediumRisk":  0,
+                       "lowRisk":  4,
+                       "totalStock":  351,
+                       "projectedWriteOff":  193,
+                       "projectedLossValue":  14078,
+                       "totalRNS":  486,
+                       "categories":  {
+                                          "Хлібобулочні":  {
+                                                               "total":  1,
+                                                               "atRisk":  0,
+                                                               "writeOff":  0
+                                                           },
+                                          "М\u0027ясо та ковбаси":  {
+                                                                        "total":  1,
+                                                                        "atRisk":  0,
+                                                                        "writeOff":  0
+                                                                    },
+                                          "Овочі та фрукти":  {
+                                                                  "total":  1,
+                                                                  "atRisk":  1,
+                                                                  "writeOff":  55
+                                                              },
+                                          "Напої":  {
+                                                        "total":  1,
+                                                        "atRisk":  1,
+                                                        "writeOff":  65
+                                                    },
+                                          "Бакалія":  {
+                                                          "total":  1,
+                                                          "atRisk":  0,
+                                                          "writeOff":  0
+                                                      },
+                                          "Кондитерські":  {
+                                                               "total":  2,
+                                                               "atRisk":  1,
+                                                               "writeOff":  6
+                                                           },
+                                          "Заморожені":  {
+                                                             "total":  2,
+                                                             "atRisk":  2,
+                                                             "writeOff":  67
+                                                         }
+                                      },
+                       "avgRNS":  54
+                   },
+                   {
+                       "storeId":  "s5",
+                       "storeName":  "Сільпо ТЦ «Троєщина»",
+                       "storeAddress":  "Київ, вул. Закревського, 36",
+                       "totalProducts":  8,
+                       "atRiskProducts":  4,
+                       "criticalRisk":  4,
+                       "highRisk":  0,
+                       "mediumRisk":  0,
+                       "lowRisk":  4,
+                       "totalStock":  267,
+                       "projectedWriteOff":  122,
+                       "projectedLossValue":  12809,
+                       "totalRNS":  440,
+                       "categories":  {
+                                          "Молочні продукти":  {
+                                                                   "total":  1,
+                                                                   "atRisk":  0,
+                                                                   "writeOff":  0
+                                                               },
+                                          "Хлібобулочні":  {
+                                                               "total":  1,
+                                                               "atRisk":  0,
+                                                               "writeOff":  0
+                                                           },
+                                          "М\u0027ясо та ковбаси":  {
+                                                                        "total":  1,
+                                                                        "atRisk":  0,
+                                                                        "writeOff":  0
+                                                                    },
+                                          "Овочі та фрукти":  {
+                                                                  "total":  2,
+                                                                  "atRisk":  2,
+                                                                  "writeOff":  91
+                                                              },
+                                          "Напої":  {
+                                                        "total":  1,
+                                                        "atRisk":  1,
+                                                        "writeOff":  24
+                                                    },
+                                          "Бакалія":  {
+                                                          "total":  2,
+                                                          "atRisk":  1,
+                                                          "writeOff":  7
+                                                      }
+                                      },
+                       "avgRNS":  55
+                   },
+                   {
+                       "storeId":  "s2",
+                       "storeName":  "Сільпо ТЦ «Караван»",
+                       "storeAddress":  "Київ, вул. Лугова, 12",
+                       "totalProducts":  5,
+                       "atRiskProducts":  2,
+                       "criticalRisk":  2,
+                       "highRisk":  0,
+                       "mediumRisk":  0,
+                       "lowRisk":  3,
+                       "totalStock":  214,
+                       "projectedWriteOff":  65,
+                       "projectedLossValue":  9416,
+                       "totalRNS":  228,
+                       "categories":  {
+                                          "М\u0027ясо та ковбаси":  {
+                                                                        "total":  1,
+                                                                        "atRisk":  0,
+                                                                        "writeOff":  0
+                                                                    },
+                                          "Овочі та фрукти":  {
+                                                                  "total":  1,
+                                                                  "atRisk":  1,
+                                                                  "writeOff":  56
+                                                              },
+                                          "Бакалія":  {
+                                                          "total":  2,
+                                                          "atRisk":  0,
+                                                          "writeOff":  0
+                                                      },
+                                          "Заморожені":  {
+                                                             "total":  1,
+                                                             "atRisk":  1,
+                                                             "writeOff":  9
+                                                         }
+                                      },
+                       "avgRNS":  46
+                   },
+                   {
+                       "storeId":  "s1",
+                       "storeName":  "Сільпо ТЦ «Космополіт»",
+                       "storeAddress":  "Київ, вул. Гетьмана, 6",
+                       "totalProducts":  4,
+                       "atRiskProducts":  2,
+                       "criticalRisk":  2,
+                       "highRisk":  0,
+                       "mediumRisk":  0,
+                       "lowRisk":  2,
+                       "totalStock":  162,
+                       "projectedWriteOff":  76,
+                       "projectedLossValue":  6094,
+                       "totalRNS":  222,
+                       "categories":  {
+                                          "Молочні продукти":  {
+                                                                   "total":  3,
+                                                                   "atRisk":  2,
+                                                                   "writeOff":  76
+                                                               },
+                                          "Хлібобулочні":  {
+                                                               "total":  1,
+                                                               "atRisk":  0,
+                                                               "writeOff":  0
+                                                           }
+                                      },
+                       "avgRNS":  56
+                   }
+               ],
+    "totalStores":  5,
+    "totalProducts":  35,
+    "totalAtRisk":  20,
+    "totalWriteOff":  663,
+    "totalLossValue":  61871,
+    "totalStock":  1459
+}

@@ -1,0 +1,53 @@
+﻿{
+    "items":  [
+                  {
+                      "id":  "ci1",
+                      "productName":  "Кефір 1% 900мл",
+                      "category":  "Молочні продукти",
+                      "storeName":  "Сільпо ТЦ «Космополіт»",
+                      "storeAddress":  "Київ, вул. Гетьмана, 6",
+                      "stock":  24,
+                      "quantity":  24,
+                      "price":  32,
+                      "daysToExpiry":  4,
+                      "rns":  78,
+                      "riskLevel":  "high",
+                      "reason":  "виявлено аномальне зниження попиту; короткий термін придатності (4 дн.)",
+                      "status":  "available",
+                      "addedAt":  "2026-08-29T17:27:56.674Z"
+                  },
+                  {
+                      "id":  "ci2",
+                      "productName":  "Хліб білий нарізний",
+                      "category":  "Хлібобулочні",
+                      "storeName":  "Сільпо ТЦ «Караван»",
+                      "storeAddress":  "Київ, вул. Лугова, 12",
+                      "stock":  15,
+                      "quantity":  15,
+                      "price":  18,
+                      "daysToExpiry":  2,
+                      "rns":  85,
+                      "riskLevel":  "critical",
+                      "reason":  "виявлено аномальне зниження попиту; тренд зниження продажів",
+                      "status":  "available",
+                      "addedAt":  "2026-08-29T13:51:36.721Z"
+                  },
+                  {
+                      "id":  "ci3",
+                      "productName":  "Печиво «Весняне» 300г",
+                      "category":  "Кондитерські",
+                      "storeName":  "Сільпо ТЦ «City Mall»",
+                      "storeAddress":  "Київ, просп. Перемоги, 46",
+                      "stock":  40,
+                      "quantity":  40,
+                      "price":  45,
+                      "daysToExpiry":  12,
+                      "rns":  62,
+                      "riskLevel":  "high",
+                      "reason":  "надлишковий залишок відносно прогнозованого попиту",
+                      "status":  "available",
+                      "addedAt":  "2026-08-30T05:28:38.306Z"
+                  }
+              ],
+    "count":  3
+}

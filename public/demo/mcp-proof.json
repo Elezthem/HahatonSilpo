@@ -1,0 +1,66 @@
+﻿{
+    "success":  true,
+    "source":  "mcp",
+    "checks":  [
+                   {
+                       "tool":  "silpo_get_loyalty_info",
+                       "success":  true,
+                       "summary":  "Авторизований профіль лояльності доступний"
+                   },
+                   {
+                       "tool":  "silpo_get_my_food_restrictions",
+                       "success":  true,
+                       "summary":  "0 харчових обмежень у профілі"
+                   },
+                   {
+                       "tool":  "silpo_get_my_online_orders",
+                       "success":  true,
+                       "summary":  "0 останніх онлайн-замовлень отримано"
+                   }
+               ],
+    "trace":  [
+                  {
+                      "tool":  "silpo_get_my_food_restrictions",
+                      "status":  "success",
+                      "details":  "372 ms",
+                      "timestamp":  "2026-08-30T10:26:08.892Z"
+                  },
+                  {
+                      "tool":  "silpo_get_loyalty_info",
+                      "status":  "success",
+                      "details":  "366 ms",
+                      "timestamp":  "2026-08-30T10:26:08.885Z"
+                  },
+                  {
+                      "tool":  "silpo_get_my_online_orders",
+                      "status":  "success",
+                      "details":  "150 ms",
+                      "timestamp":  "2026-08-30T10:26:08.673Z"
+                  },
+                  {
+                      "tool":  "silpo_get_loyalty_info",
+                      "status":  "success",
+                      "details":  "286 ms",
+                      "timestamp":  "2026-08-30T10:25:55.606Z"
+                  },
+                  {
+                      "tool":  "silpo_get_my_online_orders",
+                      "status":  "success",
+                      "details":  "243 ms",
+                      "timestamp":  "2026-08-30T10:25:55.569Z"
+                  },
+                  {
+                      "tool":  "silpo_get_my_food_restrictions",
+                      "status":  "success",
+                      "details":  "145 ms",
+                      "timestamp":  "2026-08-30T10:25:55.469Z"
+                  },
+                  {
+                      "tool":  "silpo_get_my_shopping_cart",
+                      "status":  "error",
+                      "details":  "MCP tool error: Error in get-my-shopping-cart: Resource not found. Verify the parameters are correct.",
+                      "timestamp":  "2026-08-30T10:25:43.695Z"
+                  }
+              ],
+    "checkedAt":  "2026-08-30T10:26:08.892Z"
+}
