@@ -34,6 +34,7 @@ const basketPresets = [
 const STATIC_DEMO_MODE = location.hostname.endsWith('github.io')
   || location.hostname.endsWith('workers.dev')
   || location.protocol === 'file:';
+const LIVE_MCP_WORKER = location.hostname.endsWith('workers.dev');
 const DEMO_STORAGE_KEYS = {
   charityRequests: 'ai-charity-connect-demo-charity-requests',
   charityItems: 'ai-charity-connect-demo-charity-items',
@@ -355,13 +356,15 @@ function animateNumber(el, target, duration = 1000, suffix = '') {
 
 // ═══ API Helpers ════════════════════════════════════════
 async function api(method, path, body = null) {
-  if (STATIC_DEMO_MODE) return demoApi(method, path, body);
+  const workerMcpRoute = ['/api/status', '/api/admin-login', '/api/mcp-authenticate', '/api/mcp-tools', '/api/mcp-proof'].includes(path);
+  if (STATIC_DEMO_MODE && !(LIVE_MCP_WORKER && workerMcpRoute)) return demoApi(method, path, body);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20_000);
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
     signal: controller.signal,
+    credentials: 'same-origin',
   };
   if (body) opts.body = JSON.stringify(body);
   try {
@@ -599,7 +602,7 @@ async function checkStatus() {
     const badge = document.getElementById('mcpStatus');
     const btn = document.getElementById('authBtn');
 
-    if (STATIC_DEMO_MODE) {
+    if (STATIC_DEMO_MODE && !LIVE_MCP_WORKER) {
       badge.className = 'status-badge status-pending';
       badge.querySelector('.status-text').textContent = 'DEMO · інтерактивний сценарій';
       badge.title = 'На Cloudflare працює browser demo. Live MCP OAuth потребує Node-сервісу.';
@@ -629,8 +632,17 @@ async function checkStatus() {
 
 async function authenticateMCP() {
   try {
+    if (LIVE_MCP_WORKER) {
+      const password = window.prompt('Введіть адмін-код для підключення live MCP');
+      if (password === null) return;
+      await api('POST', '/api/admin-login', { password });
+    }
     showLoading('Авторизація MCP...');
     const result = await api('POST', '/api/mcp-authenticate');
+    if (result.authorizationUrl) {
+      window.location.assign(result.authorizationUrl);
+      return;
+    }
     if (result.success) {
       await checkStatus();
       await loadDashboard();

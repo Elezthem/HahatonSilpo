@@ -36,7 +36,20 @@ npm start
 npx wrangler deploy
 ```
 
-На домені `workers.dev` автоматично вмикається повний browser demo-flow: створення запитів, підбір плану та explicit confirmation зберігаються локально в браузері. Це дозволяє показати сценарій end-to-end без сервера. Live MCP OAuth не запускається у статичному Worker: він потребує Node-сервісу й захищеного сховища refresh-токенів, тому для реального запису в кошик використовуйте `server.js` або окремо розгорнутий Node Web Service.
+На домені `workers.dev` автоматично вмикається browser demo-flow: створення запитів, підбір плану та explicit confirmation зберігаються локально в браузері. Worker також реалізує захищений live MCP OAuth: OAuth state і токен залишаються на сервері у Cloudflare KV, а браузер отримує лише HttpOnly-сесію адміністратора.
+
+Для live MCP у Cloudflare налаштуйте secrets, які не можна комітити в Git:
+
+```bash
+npx wrangler secret put MCP_ADMIN_PASSWORD
+npx wrangler secret put MCP_SESSION_SECRET
+```
+
+Після деплою натисніть `Підключити Сільпо`, введіть адмін-код та завершіть OAuth у «Сільпо». Callback має адресу `https://YOUR-WORKER.workers.dev/api/mcp-callback`. У Worker live-перевіряються статус, список tools і privacy-safe MCP proof. Реальна зміна кошика наразі виконується повним Node-сценарієм через `server.js`.
+
+## Відкат Cloudflare
+
+Перед перенесенням live OAuth створено резервні точки: гілку `backup/pre-live-mcp-worker` і тег `backup-before-live-mcp-worker-20260904`. Щоб повернути попередню версію Worker, використайте `npx wrangler rollback`, або відновіть код із цієї гілки й задеплойте його повторно.
 
 Для повного MCP-сценарію в акаунті «Сільпо» має існувати активний кошик із налаштованим магазином, типом доставки й часовим слотом.
 
