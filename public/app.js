@@ -192,7 +192,7 @@ async function demoApi(method, path, body) {
   if (method === 'POST' && path === '/api/mcp-authenticate') {
     return {
       success: false,
-      error: 'GitHub Pages не підтримує Node/MCP OAuth. Для live MCP запускайте проєкт локально через server.js.',
+      error: 'Це статична demo-версія. Live MCP OAuth доступний у Node-версії застосунку через server.js.',
     };
   }
 
@@ -598,6 +598,14 @@ async function checkStatus() {
     const status = await api('GET', '/api/status');
     const badge = document.getElementById('mcpStatus');
     const btn = document.getElementById('authBtn');
+
+    if (STATIC_DEMO_MODE) {
+      badge.className = 'status-badge status-pending';
+      badge.querySelector('.status-text').textContent = 'DEMO · інтерактивний сценарій';
+      badge.title = 'На Cloudflare працює browser demo. Live MCP OAuth потребує Node-сервісу.';
+      btn.style.display = 'none';
+      return;
+    }
 
     if (status.mcpConnected) {
       badge.className = 'status-badge status-connected';
