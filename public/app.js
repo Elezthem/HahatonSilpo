@@ -30,7 +30,10 @@ const basketPresets = [
   { id: 'holiday-romantic', icon: '🌹', title: 'Свято: Романтичний вечір', subtitle: 'Маленький, але приємний набір', categories: ['Кондитерські', 'Фрукти', 'Молочні продукти', 'Напої'], keywords: ['шоколад', 'полуниц', 'виноград', 'сир', 'сік'], budget: 1100, limit: 6 },
 ];
 
-const STATIC_DEMO_MODE = location.hostname.endsWith('github.io') || location.protocol === 'file:';
+// Static hosts have no Node runtime for the live MCP OAuth callback.
+const STATIC_DEMO_MODE = location.hostname.endsWith('github.io')
+  || location.hostname.endsWith('workers.dev')
+  || location.protocol === 'file:';
 const DEMO_STORAGE_KEYS = {
   charityRequests: 'ai-charity-connect-demo-charity-requests',
   charityItems: 'ai-charity-connect-demo-charity-items',
