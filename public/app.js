@@ -220,7 +220,7 @@ async function demoApi(method, path, body) {
         stock: product.stock,
         quantity: Math.max(1, Math.min(product.stock, Math.ceil(request.quantity / 5))),
         donationScore: Math.min(100, Math.round((product.riskAnalysis?.rns || 0) * 0.7 + 25)),
-        matchReason: 'Підібрано з локального demo-набору для GitHub Pages',
+        matchReason: 'Підібрано з локального demo-набору',
       }));
     const total = selected.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     return {
@@ -233,7 +233,7 @@ async function demoApi(method, path, body) {
       planId: `demo-plan-${Date.now()}`,
       slotValidated: true,
       trace: [
-        { tool: 'static-demo-match', status: 'success', details: 'GitHub Pages fallback', timestamp: new Date().toISOString() },
+        { tool: 'static-demo-match', status: 'success', details: 'Static demo fallback', timestamp: new Date().toISOString() },
       ],
       canConfirm: selected.length > 0,
     };
@@ -242,11 +242,11 @@ async function demoApi(method, path, body) {
   if (method === 'POST' && path === '/api/mcp-charity-confirm') {
     return {
       success: true,
-      message: 'Demo-план підтверджено локально. На GitHub Pages це імітація без реальної зміни кошика Silpo.',
+      message: 'Demo-план підтверджено локально. Це імітація без реальної зміни кошика Silpo.',
       validations: [],
       blockingErrors: [],
       trace: [
-        { tool: 'static-demo-confirm', status: 'success', details: 'No live MCP on GitHub Pages', timestamp: new Date().toISOString() },
+        { tool: 'static-demo-confirm', status: 'success', details: 'No live MCP in static demo', timestamp: new Date().toISOString() },
       ],
     };
   }
@@ -280,13 +280,13 @@ async function demoApi(method, path, body) {
         aiDiscountScore: Math.round(scoreDemoProduct(target, requestedDiscountPercent)),
       },
       agentDecision: `ШІ агент пропонує дати ${requestedDiscountPercent}% знижки на "${target.name}".`,
-      explanation: 'На GitHub Pages використовується статичний demo-розрахунок без серверного MCP.',
+      explanation: 'У статичній demo-версії використовується локальний розрахунок без серверного MCP.',
       source: 'demo',
       generatedAt: new Date().toISOString(),
     };
   }
 
-  throw createDemoError(`Маршрут ${method} ${path} недоступний у GitHub Pages demo-режимі`, 'DEMO_ROUTE_NOT_FOUND');
+  throw createDemoError(`Маршрут ${method} ${path} недоступний у статичному demo-режимі`, 'DEMO_ROUTE_NOT_FOUND');
 }
 
 function escapeHtml(value) {
